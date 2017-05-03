@@ -322,6 +322,15 @@ class UpdateStatus(DeclEnum):
     processing = 'processing', 'processing'
 
 
+class CiStatus(DeclEnum):
+    """ This class lists the different status the ci_status flag can have. """
+    ignored = 'ignored', 'Ignored'
+    queued = 'queued', 'Queued'
+    running = 'running', 'Running'
+    passed = 'passed', 'Passed'
+    failed = 'failed', 'Failed'
+
+
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
@@ -680,6 +689,8 @@ class Build(Base):
             of.
         type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
             which subclass of Build to use.
+        ci_status (EnumSymbol): The CI status of the update. This must be one of the values
+            defined in :class:`CiStatus` or ``None``.
     """
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
@@ -691,6 +702,7 @@ class Build(Base):
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
+    ci_status = Column(CiStatus.db_type(), default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
 
@@ -1308,6 +1320,39 @@ class Update(Base):
         if not self.release.pending_signing_tag:
             return True
         return all([build.signed for build in self.builds])
+
+    @property
+    def ci_passed(self):
+        """ Returns a boolean representing if all the builds associated with
+        this update are ignored or have passed their CI testing.
+
+        Returns False if at least one of the tests of the builds associated
+        with this update are queued, running or failed.
+        """
+        if self.ci_status in (
+                CiStatus.ignored.description, CiStatus.passed.description):
+            return True
+        return False
+
+    @property
+    def ci_status(self):
+        """ Returns a label representing if all the builds associated with
+        this update are ignored or have passed their CI testing.
+
+        Returns one of: ignored, passed, failed, queued, running, None
+        """
+
+        ci_status = set([build.ci_status for build in self.builds])
+        if ci_status == set([CiStatus.ignored]):
+            return CiStatus.ignored.description
+        if ci_status == set([CiStatus.passed]):
+            return CiStatus.passed.description
+        if CiStatus.failed in ci_status:
+            return CiStatus.failed.description
+        if CiStatus.running in ci_status:
+            return CiStatus.running.description
+        if CiStatus.queued in ci_status:
+            return CiStatus.queued.description
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
@@ -2096,6 +2141,9 @@ class Update(Base):
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
 
+        if not self.ci_passed:
+            return False, "CI did not pass on this update"
+
         # TODO - check require_bugs and require_testcases also?
 
         return True, "All checks pass."
@@ -2196,6 +2244,9 @@ class Update(Base):
         simply return True.
         """
         num_days = self.mandatory_days_in_testing
+
+        if not self.ci_passed:
+            return False
 
         if self.critpath:
             # Ensure there is no negative karma. We're looking at the sum of
