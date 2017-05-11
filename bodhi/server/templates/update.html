@@ -692,6 +692,17 @@ $(document).ready(function(){
                 </div>
               </div>
 
+              % if request.registry.settings.get('ci.required', 'False') == 'True':
+              <div class="p-b-1">
+                <div>
+                  <strong>CI Status</strong>
+                </div>
+                <div>
+                  ${self.util.ci_status2html(update.ci_status) | n}
+                </div>
+              </div>
+              % endif
+
               % if update.request:
               <div class="p-b-1">
                 <div>
