@@ -604,6 +604,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_provenpackager_request_queued_in_ci(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
@@ -641,6 +642,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_provenpackager_request_running_in_ci(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
@@ -678,6 +680,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_provenpackager_request_failed_ci(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
@@ -752,6 +755,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_provenpackager_request_no_ci(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'

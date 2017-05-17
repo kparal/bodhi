@@ -626,6 +626,7 @@ class TestUpdate(ModelTest):
 
         eq_(update.days_to_stable, 3)
 
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_failed_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False if the
@@ -640,6 +641,7 @@ class TestUpdate(ModelTest):
         # Assert that our preconditions from the docblock are correct.
         eq_(update.meets_testing_requirements, False)
 
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_queued_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False if the
@@ -654,11 +656,13 @@ class TestUpdate(ModelTest):
         # Assert that our preconditions from the docblock are correct.
         eq_(update.meets_testing_requirements, False)
 
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_running_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False if the
         builds of an update did not pass CI.
         """
+        self.config['ci.required'] = True
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
@@ -668,6 +672,7 @@ class TestUpdate(ModelTest):
         # Assert that our preconditions from the docblock are correct.
         eq_(update.meets_testing_requirements, False)
 
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_missing_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False if the
@@ -681,6 +686,20 @@ class TestUpdate(ModelTest):
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         eq_(update.meets_testing_requirements, False)
+
+    def test_ci_ci_required_off(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.running
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, True)
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')

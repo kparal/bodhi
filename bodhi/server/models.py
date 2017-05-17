@@ -1180,6 +1180,13 @@ class Update(Base):
         log.debug("Triggering db flush for new update.")
         db.flush()
 
+        if not config.get('ci.required', False):
+            log.debug(
+                'CI required is not enforced, marking the update as being ignored')
+            for build in up.builds:
+                build.ci_status = CiStatus.ignored
+            db.flush()
+
         log.debug("Done with Update.new(...)")
         return up, caveats
 
@@ -2141,7 +2148,7 @@ class Update(Base):
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
 
-        if not self.ci_passed:
+        if config.get('ci.required', False) and not self.ci_passed:
             return False, "CI did not pass on this update"
 
         # TODO - check require_bugs and require_testcases also?
@@ -2245,7 +2252,7 @@ class Update(Base):
         """
         num_days = self.mandatory_days_in_testing
 
-        if not self.ci_passed:
+        if config.get('ci.required', False) and not self.ci_passed:
             return False
 
         if self.critpath:
