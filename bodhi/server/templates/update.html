@@ -879,6 +879,17 @@ $(document).ready(function(){
           <td>
             <a href="https://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob" target="_blank">
                 ${build.nvr}</a>
+          </td>
+          % if request.registry.settings.get('ci.required', 'False') == 'True':
+            <td>
+              % if build.ci_url:
+                <a href="${build.ci_url}">${self.util.ci_status2html(build.ci_status.description) | n}</a>
+              % else:
+                ${self.util.ci_status2html(build.ci_status.description) | n}
+              % endif
+            </td>
+          % endif
+          <td class="pull-right">
             % if build.signed:
               <span class="fa fa-key text-muted" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
             % endif

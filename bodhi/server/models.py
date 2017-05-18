@@ -703,6 +703,7 @@ class Build(Base):
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
     ci_status = Column(CiStatus.db_type(), default=None, nullable=True)
+    ci_url = Column(UnicodeText, default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
 
