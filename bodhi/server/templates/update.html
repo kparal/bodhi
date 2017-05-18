@@ -695,7 +695,13 @@ $(document).ready(function(){
               % if request.registry.settings.get('ci.required', 'False') == 'True':
               <div class="p-b-1">
                 <div>
-                  <strong>CI Status</strong>
+                  % if request.registry.settings.get('ci.url'):
+                    <a href="${request.registry.settings.get('ci.url')}" title="More information about CI">
+                      <strong>CI Status</strong>
+                    </a>
+                  % else:
+                    <strong>CI Status</strong>
+                  % endif
                 </div>
                 <div>
                   ${self.util.ci_status2html(update.ci_status) | n}
